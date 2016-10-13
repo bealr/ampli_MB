@@ -76,7 +76,8 @@ void main(void) {
     I2C_init();
     LCD_init();
     backlight_on();
-    LCD_write_str("Yolo !");
+    LCD_cursor(1,2);
+    LCD_write_str("Bonjour ma girafe!");
     
     GIE = 0;
    

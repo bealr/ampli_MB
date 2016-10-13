@@ -71,13 +71,13 @@ void backlight_off()
 void set_data(char data)
 {
     reg_pcf &= 0x0F;
-    reg_pcf |= data;
+    reg_pcf |= (data<<4)&0xF0;
     write_pcf(reg_pcf);
 }
 
 void write_pcf(char data)
 {
-    I2C_write(PCF_addr, 0, data&0x0F);
+    I2C_write(PCF_addr, 0, data);
 }
 
 void LCD_init()
@@ -85,17 +85,16 @@ void LCD_init()
     int i;
     reg_pcf = 0;    
     I2C_write(PCF_addr, 0, 0);
-    for (i=0;i<100;i++) __delay_ms(10);
+    for (i=0;i<2;i++) __delay_ms(10);
     LCD_init_write(0x30);
-    __delay_ms(10);
+    __delay_ms(5);
     LCD_init_write(0x30);
-    __delay_ms(10);
-    LCD_init_write(0x30);
-    __delay_ms(10);
+    __delay_ms(5);
     LCD_init_write(0x20);
-    
-    __delay_ms(10);
-    LCD_write(0x04, CMD); // cursor at begin
+    __delay_ms(5);
+    LCD_write(0x28, CMD);
+    LCD_write(0x0C, CMD); // display on, no cursor, not blinking
+    LCD_write(0x01, CMD); // clear
     
 }
 
@@ -103,7 +102,7 @@ void LCD_init_write(char data)
 {
     set_data(data>>4);
     set_E();
-    __delay_ms(1);
+    //__delay_us(10);
     unset_E();
 }
 
@@ -114,14 +113,14 @@ void LCD_write(char data, char mode)
     
     set_data(data>>4);
     set_E();
-    __delay_ms(1);
+    //__delay_us(10);
     unset_E();
     
-    __delay_ms(1);
+    //__delay_us(10);
     
     set_data(data);
     set_E();
-    __delay_ms(1);
+    //__delay_us(10);
     unset_E();
     
     unset_RS();
@@ -139,4 +138,33 @@ void LCD_write_str(const char *data)
         LCD_write_car(*data);
         data++;
     }
+}
+
+void LCD_cursor(char x, char y)
+{
+    int i;
+    
+    if (y>4 || !y) 
+        return;
+    if (x>20 || !x)
+        return;
+    
+    switch(y)
+    {
+        case 1:
+            LCD_write(0x80, CMD);
+            break;
+        case 2:
+            LCD_write(0xC0, CMD);
+            break;
+        case 3:
+            LCD_write(0x94, CMD);
+            break;
+        case 4:
+            LCD_write(0xD4, CMD);
+            break;
+    }
+    
+    for (i=0;i<x;i++)
+        LCD_write(0x14,CMD);
 }

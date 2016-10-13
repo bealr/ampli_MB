@@ -26,6 +26,7 @@ void set_data(char data);
 void write_pcf(char data);
 void LCD_write_car(char data);
 void LCD_write_str(const char *data);
+void LCD_cursor(char x, char y);
 
 #endif	/* LCD_D_H */
 

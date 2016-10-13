@@ -42,10 +42,11 @@ void I2C_write(char addr_i2c, char addr, char data)
     SSP1CON2bits.PEN = 1; // stop bit
     while(SSP1CON2bits.PEN);
     
-    __delay_ms(5);
+    __delay_ms(1);
 }
 
 void I2C_busy(void)
 {
     while((SSP1CON2 & 0x1F) || (SSP1STAT & 0x04));
 }
+
