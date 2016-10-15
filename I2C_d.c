@@ -12,18 +12,6 @@ void I2C_init(void)
     SSP1CON2 = 0;
     SSP1ADD  = 39;
     SSP1STAT = 0b10000000;
-    /*
-    //SSP1CON1 = 0b00101000; // mode I2C Master, pin configured
-    SSP1CON1 = 0x38;
-    SSP1CON2 = 0b00000000;
-    //SSP1STAT = 0b10000000; // slew rate disabled, smbus disabled
-    SSP1STATbits.CKE=1;
-    SSP1STATbits.SMP=1;
-    SSP1ADD  = 0x13;
-    
-    
-    PIE1bits.SSP1IE = 1;
-    */
 }
 
 void I2C_write(char addr_i2c, char addr, char data)

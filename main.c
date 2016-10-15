@@ -65,8 +65,46 @@
 #include <xc.h>
 #include "I2C_d.h"
 #include "LCD_d.h"
+#include "uart_d.h"
+#include "galva_d.h"
 
 void init(void);
+void soft_interrupt(void);
+
+extern char buff_uart_esp[20];
+
+// on a rien vu c'est pas une variable globale
+char interrupt_soft=0;
+/*
+ * xxxxxxxx
+ * |||||||| -> uart esp data available
+ * |||||||  ->
+ * ||||||   ->
+ * |||||    ->
+ * ||||     ->
+ * |||      ->
+ * ||       ->
+ * |        ->
+ * 
+ */
+// end of "on a rien vu"
+
+void interrupt tc_int(void) // High priority interrupt
+{
+    GIE = 0;
+    
+    if (PIR1bits.RC1IF)
+    {
+        UART_esp_process(UART_esp_read());
+        PIR1bits.RC1IF = 0;
+    }
+    
+    GIE = 1;
+}
+ 
+void interrupt low_priority LowIsr(void) // Low priority interrupt
+{
+}
 
 void main(void) {
     
@@ -75,18 +113,35 @@ void main(void) {
     init();
     I2C_init();
     LCD_init();
-    backlight_on();
-    LCD_cursor(1,2);
-    LCD_write_str("Bonjour ma girafe!");
+    UART_init_uart_esp();
+    galva_init();
     
-    GIE = 0;
+    backlight_on();
+    LCD_cursor(4,2);
+    LCD_write_str("La falaise!");
+    LATA6 = 0;
+    
+    GIE = 1;
+    PEIE = 1;
+    
+    __delay_ms(10);
+    
+    TRISD0 = 1; // reset On, pas propre !!
    
+    galva_set(255);
+    
     while (1) {
         
+        if (interrupt_soft)
+            soft_interrupt();
+        
         LATA6 = 1;
-        for (i=0;i<100;i++) __delay_ms(10);
+        galva_set(0);
+        for (i=0;i<50;i++) __delay_ms(10);
         LATA6 = 0;
-        for (i=0;i<100;i++) __delay_ms(10);
+        galva_set(255);
+        for (i=0;i<50;i++) __delay_ms(10);
+        
     }
     
     return;
@@ -104,4 +159,18 @@ void init(void) {
     // normalement 64Mhz ...
     
     TRISAbits.RA6 = 0;
+    TRISDbits.RD0 = 0;    // esp reset
+    //ANSELDbits.ANSD0 = 0; // esp reset
+    //LATD0 = 0;
+}
+
+void soft_interrupt(void)
+{
+    
+    if (interrupt_soft&0x1) // uart esp data available
+    {
+        LCD_clear();
+        LCD_write_str(buff_uart_esp);
+        interrupt_soft &= 0xFE; // clear
+    }
 }

@@ -80,6 +80,12 @@ void write_pcf(char data)
     I2C_write(PCF_addr, 0, data);
 }
 
+void LCD_clear()
+{
+    LCD_write(0x01, CMD); // clear
+    LCD_cursor(1, 1);
+}
+
 void LCD_init()
 {
     int i;
