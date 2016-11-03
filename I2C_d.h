@@ -11,6 +11,7 @@
 void I2C_init(void);
 void I2C_write(char addr_i2c, char addr, char data);
 void I2C_busy(void);
+void wait_ack(void);
 
 #endif	/* I2C_D_H */
 

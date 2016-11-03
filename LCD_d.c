@@ -77,7 +77,7 @@ void set_data(char data)
 
 void write_pcf(char data)
 {
-    I2C_write(PCF_addr, 0, data);
+    I2C_write(LCD_addr, 0, data);
 }
 
 void LCD_clear()
@@ -90,7 +90,7 @@ void LCD_init()
 {
     int i;
     reg_pcf = 0;    
-    I2C_write(PCF_addr, 0, 0);
+    I2C_write(LCD_addr, 0, 0);
     for (i=0;i<2;i++) __delay_ms(10);
     LCD_init_write(0x30);
     __delay_ms(5);

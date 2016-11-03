@@ -8,7 +8,7 @@
 #ifndef LCD_D_H
 #define	LCD_D_H
 
-#define PCF_addr 0x7E
+#define LCD_addr 0x3F
 
 void LCD_init();
 void LCD_init_write(char data);

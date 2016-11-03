@@ -67,6 +67,7 @@
 #include "LCD_d.h"
 #include "uart_d.h"
 #include "galva_d.h"
+#include "selecter.h"
 
 void init(void);
 void soft_interrupt(void);
@@ -115,6 +116,7 @@ void main(void) {
     LCD_init();
     UART_init_uart_esp();
     galva_init();
+    init_selecter();
     
     backlight_on();
     LCD_cursor(4,2);
@@ -130,17 +132,29 @@ void main(void) {
    
     galva_set(255);
     
+    
     while (1) {
         
         if (interrupt_soft)
             soft_interrupt();
         
         LATA6 = 1;
-        galva_set(0);
+        move_selecter(SELECTER_NONE);
         for (i=0;i<50;i++) __delay_ms(10);
         LATA6 = 0;
-        galva_set(255);
+        move_selecter(SELECTER_E1);
         for (i=0;i<50;i++) __delay_ms(10);
+        LATA6 = 1;
+        move_selecter(SELECTER_E2);
+        for (i=0;i<50;i++) __delay_ms(10);
+        LATA6 = 0;
+        move_selecter(SELECTER_E3);
+        for (i=0;i<50;i++) __delay_ms(10);
+        LATA6 = 1;
+        move_selecter(SELECTER_E4);
+        for (i=0;i<50;i++) __delay_ms(10);
+        
+        
         
     }
     
