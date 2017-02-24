@@ -68,11 +68,20 @@
 #include "uart_d.h"
 #include "galva_d.h"
 #include "selecter.h"
+#include "alim_board.h"
 
 void init(void);
 void soft_interrupt(void);
 
 extern char buff_uart_esp[20];
+
+struct System_state
+{
+    char alim_pui;
+    char alim_pre;
+    char selecter;
+};
+struct System_state state;
 
 // on a rien vu c'est pas une variable globale
 char interrupt_soft=0;
@@ -116,7 +125,15 @@ void main(void) {
     LCD_init();
     UART_init_uart_esp();
     galva_init();
+    
+    // SELECTER init
     init_selecter();
+    state.selecter = 0;
+    
+    // ALIM init
+    init_alim_board();
+    state.alim_pui = 0;
+    state.alim_pre = 0;
     
     backlight_on();
     LCD_cursor(4,2);
@@ -130,32 +147,14 @@ void main(void) {
     
     TRISD0 = 1; // reset On, pas propre !!
    
-    galva_set(255);
+    galva_set(128);
     
     
     while (1) {
         
         if (interrupt_soft)
             soft_interrupt();
-        
-        LATA6 = 1;
-        move_selecter(SELECTER_NONE);
-        for (i=0;i<50;i++) __delay_ms(10);
-        LATA6 = 0;
-        move_selecter(SELECTER_E1);
-        for (i=0;i<50;i++) __delay_ms(10);
-        LATA6 = 1;
-        move_selecter(SELECTER_E2);
-        for (i=0;i<50;i++) __delay_ms(10);
-        LATA6 = 0;
-        move_selecter(SELECTER_E3);
-        for (i=0;i<50;i++) __delay_ms(10);
-        LATA6 = 1;
-        move_selecter(SELECTER_E4);
-        for (i=0;i<50;i++) __delay_ms(10);
-        
-        
-        
+
     }
     
     return;
@@ -180,11 +179,30 @@ void init(void) {
 
 void soft_interrupt(void)
 {
-    
-    if (interrupt_soft&0x1) // uart esp data available
+    if (interrupt_soft&0x1)            // uart esp data available
     {
+        interrupt_soft &= 0xFE;        // clear
         LCD_clear();
         LCD_write_str(buff_uart_esp);
-        interrupt_soft &= 0xFE; // clear
+        
+        if (*(buff_uart_esp+0) == '$' && 
+            *(buff_uart_esp+2) == '.' &&
+            *(buff_uart_esp+4) == '#') {
+            
+            if (*(buff_uart_esp+1) == '1') { // carte alim
+                switch (*(buff_uart_esp+3)) {
+                    case '1':
+                        switch_alim_pui( ! (state.alim_pui == 1));
+                        break;
+                    case '2':
+                        switch_alim_pre( ! (state.alim_pre == 1));
+                        break;
+                }
+            }
+            
+            if (*(buff_uart_esp+1) == '2') { // carte select
+                move_selecter(*(buff_uart_esp+3)-1);
+            }
+        }
     }
 }

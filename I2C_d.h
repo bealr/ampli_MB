@@ -10,6 +10,7 @@
 
 void I2C_init(void);
 void I2C_write(char addr_i2c, char addr, char data);
+char I2C_read(char addr_i2c, char addr);
 void I2C_busy(void);
 void wait_ack(void);
 
